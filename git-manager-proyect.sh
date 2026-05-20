@@ -76,7 +76,7 @@ gitCloner(){
 
 
 gitPullet(){
-  userPull = -1
+  userPull=-1
   while [[ $userPull != 0  ]]; do
   echo "[1] Descargar cambios y actualizar rama actual"
   echo "[2] Descargar cambios y crear carpeta con estos cambios"
@@ -139,6 +139,30 @@ gitContinue(){
   cd "${path/\~/$HOME}"
 }
 
+
+gitCreateBranch(){
+  read -p "Enter the name of branch: " branchName
+  git branch $branchName
+}
+
+gitMerge(){
+  read -p "Enter the name of the boss branch: " mainBranch
+  
+  git checkout $mainBranch
+  read -p "Enter the numbers of branchs you need to merge with $mainBranch" nBranchs
+  allBranchsToMerge=()
+  for ((i = 0; i < $nBranchs; i++)); do
+      read -p "Enter the name of branch [$i]" nameBranch
+      allBranchsToMerge+=("$nameBranch")
+    
+  done
+  for ((i = 0; i < ${#allBranchsToMerge[@]}; i++)); do
+    git merge "${allBranchsToMerge[i]}"
+  done
+  
+
+  
+}
 gop=""
 while  [[ $gop != 0 ]]; 
 do	
@@ -177,6 +201,12 @@ do
       ;;
     5)
       gitCommit
+      ;;
+    6)
+      gitCreateBranch
+      ;;
+    7)
+      gitMerge
       ;;
     8)
       gitCloner
