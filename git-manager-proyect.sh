@@ -2,7 +2,7 @@
 echo "==============================================================" | lolcat
 echo  -e "\e[1;35m$(figlet -f slant "GIT MANAGER")\e[0m"
 echo "==============================================================" | lolcat
-
+mkdir /data/data/com.termux/files/git-logs 2>/dev/null
 initProyect(){
   git init
 }
@@ -21,6 +21,7 @@ menu_file(){
                                 do
                                         read -p "Enter the Dir Name: " dirName
                                         mkdir ./$dirName
+                                        echo "Se ha credor Dir [$dirName] en proyecto $PWD" >> /data/data/com.termux/files/git-logs/insideProyect.log
                                 done
                                 ;;
                         1)
@@ -30,6 +31,7 @@ menu_file(){
                                         read -p "Enter file name: " fileName
                                         read -p "Enter type extension(ex: py, html, txt, etc): " exFile
                                         touch $fileName"."$exFile
+                                        echo "Se ha credor archivo [$fileName.$exFile] en proyecto $PWD" >> /data/data/com.termux/files/git-logs/insideProyect.log
                                 done
                                 ;;
                         2)
@@ -46,19 +48,25 @@ file_manager(){
 	echo "Desea crear el proyecto aqui? y/n:"
 	read hereProject
 	if [[ ${hereProject,,} == "y"  ]]; then
+    echo "Proyecto creado en $PWD" >> /data/data/com.termux/files/git-logs/create-log.log 
+
     initProyect
 	  menu_file
   else
     read -p "Ingrese el lugar donde lo desea crear:" creationPath
     if [[ -d $creationPath  ]]; then
       cd "${creationPath/\~/$HOME}"
+      echo "Proyecto creado en $PWD" >> /data/data/com.termux/files/git-logs/create-log.log
       initProyect
       menu_file
+      
     else
       mkdir "${creationPath/\~/$HOME}"
       cd "${creationPath/\~/$HOME}"
+      echo "Proyecto creado en $PWD" >> /data/data/com.termux/files/git-logs/create-log.log
       initProyect
       menu_file
+      
     fi
     
   fi
@@ -67,7 +75,9 @@ file_manager(){
 gitCloner(){
   file_manager
   read -p "Ingrese la clave para poder clonar" CloneKey
+  
   git clone $CloneKey
+  echo "Se ha clonado el Repositorio $CloneKey en $PWD" >> /data/data/com.termux/files/git-logs/clone-log.log
   dir=$(basename "$CloneKey" .git)
   mv "$dir"/* .
   rm -rf "$dir" 
@@ -82,16 +92,18 @@ gitPullet(){
   echo "[2] Descargar cambios y crear carpeta con estos cambios"
   echo "[0] Regresar"
   read -p "[user]:" userPull
-
+  
   case $userPull in 
     1)
       read -p "Nombre de rama que desea agarrar" branchName
       git pull origin "$branchName"
+      echo "Se ha hecho pull de la rama $branchName en $PWD" >>/data/data/com.termux/files/git-logs/pull-log.log
       
       ;;
     2)
       read -p "Nomvre de la rama qu3 desea tomar" branchName
       git fetch origin "$branchName"
+      echo "Se ha hecho pull de la rama $branchName en $PWD" >>/data/data/com.termux/files/git-logs/pull-log.log
   
       ;;
     0)
@@ -109,6 +121,7 @@ gitPushed(){
   git branch 
   read -p "Enter the name of branch" branchName
   git push -u origin "$branchName"
+  echo "Se ha hecho push de la rama [$branchName] del proyecto $PWD" >> /data/data/com.termux/files/git-logs/push.log
 }
 
 
@@ -125,6 +138,7 @@ gitAdd(){
 gitCommit(){
   read -p "Message: " msg 
   git commit -m "$msg"
+  
 }
 
 gitSshKey(){
@@ -163,23 +177,29 @@ gitMerge(){
 
   
 }
-gop=""
+gop=-1
+gitOptions=(
+  "Crear nuevo proyecto"
+  "Clonar Repositorio"
+  "Continue workflow"
+  "Pull Proyect"
+  "Push proyect"
+  "Add something"
+  "Make commit"
+  "Create Branch"
+  "Merge Branch"
+  "File manager"
+  "Generate key"
+)
+
 while  [[ $gop != 0 ]]; 
 do	
 	echo "============================"
-	echo "[1] Crear nuevo proyecto"
-	echo "[2] Pull proyect"
-	echo "[3] Push proyect"
-	echo "[4] Add something"
-	echo "[5] Make commit"
-	echo "[6] Create branchs"
-	echo "[7] Merge branchs"
-  echo "[8] Clonar repo"
-  echo "[9] File Manager"
-  echo "[10] Generate SSH key"
-  echo "[11] Continue workflow"
-	echo "[0] Salir"
-	echo "Enter a option"
+	for ((i = 0; i < ${#gitOptions[@]}; i++)); do
+  
+    echo "[$((i+1))]" "${gitOptions[$i]}"
+	done
+  echo "[0] Salir"	
 	echo "============================"
 	read -p "Enter a option: " gop
 	
@@ -190,36 +210,36 @@ do
       initProyect
 			;;
     2)
-      gitPullet
+      gitCloner
       
       ;;
     3)
-      gitPushed
+      gitContinue
       ;;
     4)
-      gitAdd
+      gitPullet
       ;;
     5)
-      gitCommit
+      gitPushed
       ;;
     6)
-      gitCreateBranch
+      gitAdd
       ;;
     7)
-      gitMerge
+      gitCommit
       ;;
     8)
-      gitCloner
+      gitCreateBranch
   
       ;;
     9)
-      file_manager
+      gitMerge
       ;;
     10)
-      gitSshKey
+      file_manager
       ;;
     11)
-      gitContinue
+      gitSshKey
       ;;
 		0)
 			exit 0
